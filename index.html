@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exposés startups africaines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout : un registre de groupes numérotés ; chaque groupe s'ouvre sur ses 3 startups ; le prof en garde une. */
+:root{
+  --bg:#F3F5F1; --surface:#FFFFFF; --ink:#13212E; --muted:#5B6873; --line:#D9DFDA;
+  --accent:#0E7C6B; --warm:#C9821C; --stamp:#B8321F; --chip:#E7ECE6; --onaccent:#FFFFFF;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0F161C; --surface:#17212A; --ink:#E9EEEA; --muted:#9AA8B1; --line:#2A3743;
+  --accent:#3DBBA6; --warm:#E9AE4E; --stamp:#F0745E; --chip:#22303B; --onaccent:#0F161C; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+[hidden]{display:none!important}
+img{max-width:100%}
+.wrap{max-width:1120px;margin:0 auto;display:grid;gap:26px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.1}
+p{margin:0}
+.eyebrow{font:500 12px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+header{display:grid;gap:12px}
+header h1{font-size:clamp(32px,6vw,56px);font-weight:800;letter-spacing:-.02em}
+header h1 span{color:var(--accent)}
+.lead{max-width:62ch;color:var(--muted);font-size:17px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.role{font-size:14px;background:var(--chip);border-radius:999px;padding:4px 12px}
+.role.prof{background:var(--stamp);color:var(--onaccent)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 16px;font-weight:600}
+.btn.primary{background:var(--accent);border-color:transparent;color:var(--onaccent)}
+.btn.danger{color:var(--stamp);border-color:var(--stamp);background:transparent}
+.btn.small{padding:6px 12px;font-size:14px}
+.btn:disabled{opacity:.5;cursor:default}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;padding:4px;font-size:14px}
+.notice{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px 16px;display:grid;gap:8px}
+.notice.warn{border-color:var(--warm)}
+.notice.err{border-color:var(--stamp);color:var(--stamp)}
+.notice.picked{border-color:var(--stamp);border-width:2px}
+.groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.gcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:12px;text-align:left;align-content:start;min-width:0}
+.gcard:hover{border-color:var(--accent)}
+.gnum{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.gnum h2{font-size:28px}
+.gnum h2 small{font:500 13px var(--mono);color:var(--muted);margin-left:6px}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.thumbs.one{grid-template-columns:1fr}
+.thumb{position:relative;aspect-ratio:4/3;border-radius:8px;background:var(--chip);overflow:hidden;display:grid;place-items:center;font:700 18px var(--display);color:var(--muted);max-width:100%}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.names{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+.pill{font:500 12px var(--mono);padding:4px 8px;border-radius:6px;background:var(--chip);white-space:nowrap}
+.pill.done{background:var(--stamp);color:var(--onaccent)}
+.detailhead{display:grid;gap:10px}
+.detailhead h2{font-size:clamp(34px,6vw,52px)}
+.members{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--chip);border-radius:999px;padding:4px 12px;font-size:14px}
+.chip.lead{background:var(--accent);color:var(--onaccent)}
+.startups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.startups.solo{grid-template-columns:minmax(0,560px);justify-content:center}
+@media (max-width:820px){.startups{grid-template-columns:1fr}}
+.scard{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;min-width:0}
+.scard.chosen{border-color:var(--stamp);box-shadow:0 0 0 2px var(--stamp)}
+.scard .photo{position:relative;aspect-ratio:4/3;width:100%;overflow:hidden;background:var(--chip);display:grid;place-items:center;font:800 40px var(--display);color:var(--muted)}
+.scard .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.scard .body{padding:18px;display:grid;gap:10px;min-width:0;overflow-wrap:anywhere}
+.scard h3{font-size:26px}
+.scard .meta{font:500 13px var(--mono);color:var(--muted)}
+.scard p.desc{white-space:pre-line}
+.stamp{position:absolute;top:14px;right:14px;transform:rotate(-6deg);border:3px solid var(--stamp);color:var(--stamp);
+  font:800 14px/1.1 var(--display);text-transform:uppercase;letter-spacing:.06em;padding:6px 10px;border-radius:6px;background:var(--surface);text-align:center}
+.confirm{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--chip);border-radius:10px;padding:10px}
+form{display:grid;gap:22px}
+fieldset{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:18px;margin:0;display:grid;gap:12px;min-width:0}
+legend{font:700 20px var(--display);padding:0 6px}
+label{display:grid;gap:4px;font-weight:600;font-size:14px}
+input[type=text],input[type=password],textarea{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:var(--bg);width:100%;font-weight:400;font-size:16px}
+textarea{min-height:84px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:600px){.row2{grid-template-columns:1fr}}
+.mrow{display:flex;gap:8px;align-items:center}
+.mrow input{flex:1;min-width:0}
+.mrow .n{font:500 13px var(--mono);color:var(--muted);width:22px}
+.photoin{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.photoin .thumb{width:120px}
+.formerr{color:var(--stamp);font-weight:600}
+.empty{border:1px dashed var(--line);border-radius:14px;padding:32px 20px;text-align:center;display:grid;gap:10px;justify-items:center}
+.codebox{font:700 28px var(--mono);letter-spacing:.15em;background:var(--chip);border-radius:10px;padding:10px 16px;justify-self:start}
+.inline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.inline input{flex:1;min-width:160px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Exposés · Startups africaines</p>
+    <h1>Chaque groupe propose 3 startups, <span>le prof en garde une</span></h1>
+    <p class="lead">Chef de groupe : inscris ton groupe (5 à 7 membres) et tes 3 startups avec une photo. Le professeur ouvre ensuite chaque groupe et choisit la startup à présenter.</p>
+    <div class="bar">
+      <span class="role" id="role">Chargement…</span>
+      <div class="inline">
+        <button class="btn" id="go-list" hidden>← Tous les groupes</button>
+        <button class="btn" id="refresh">Actualiser</button>
+        <button class="btn primary" id="go-form" hidden>Inscrire mon groupe</button>
+      </div>
+    </div>
+  </header>
+  <div id="msg"></div>
+  <main id="main"></main>
+  <section id="admin" class="notice" hidden></section>
+  <div id="foot" class="muted" style="font-size:14px;display:grid;gap:10px"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=t=>String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const okImg=u=>typeof u==="string"&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(u);
+const initials=n=>esc(String(n||"?").trim().slice(0,2).toUpperCase());
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
+
+/* Appel au serveur Google Apps Script (API JSON), sans cookie Google : marche sur tous les appareils. */
+const API_URL="https://script.google.com/macros/s/AKfycbwSIa-_mLELSUvxs5vB3OhSn4vG94Ryurz9kxgw0kS8etmE5I9tUHukR0nkW-TLkeDD/exec";
+async function api(fn,...args){
+  let r;
+  try{r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({fn,args}),credentials:"omit",redirect:"follow"})}
+  catch(e){throw new Error("Connexion impossible. Vérifie ton internet puis réessaie.")}
+  let j;try{j=await r.json()}catch(e){throw new Error("Le serveur ne répond pas correctement. Réessaie dans un instant.")}
+  if(!j.ok)throw new Error(j.error||"Erreur du serveur.");
+  return j.data;
+}
+
+let groups=[],loaded=false,loadErr=null,busy=false;
+let view={name:"list"},confirmAct=null;
+let myCode=store.get("codeGroupe"),myNum=Number(store.get("numeroGroupe"))||null;
+let roleCode=store.get("codeRole"),role=null; // "prof" | "admin" | null
+let codeOpen=false,editOpen=false;
+
+const isProf=()=>role==="prof"||role==="admin";
+const myGroup=()=>myNum?groups.find(g=>g.numero===myNum):null;
+
+async function load(){
+  try{groups=await api("listGroups");loaded=true;loadErr=null;
+    if(myNum&&!myGroup()&&loaded){myNum=null;myCode=null;store.set("codeGroupe",null);store.set("numeroGroupe",null)}}
+  catch(e){loadErr=e.message}
+  render();
+}
+function showMsg(html,cls="notice"){$("#msg").innerHTML=html?`<div class="${cls}">${html}</div>`:""}
+
+function render(){
+  $("#role").textContent=role==="admin"?"Administrateur":role==="prof"?"Vous êtes le professeur":myGroup()?`Chef du groupe ${myNum}`:"Chef de groupe";
+  $("#role").className="role"+(isProf()?" prof":"");
+  $("#go-list").hidden=view.name==="list";
+  $("#go-form").hidden=view.name==="form"||isProf();
+  $("#go-form").textContent=myGroup()?"Modifier mon groupe":"Inscrire mon groupe";
+  if(view.name==="form")return;
+  if(view.name==="group")renderGroup(view.num);else renderList();
+  renderAdmin();renderFoot();
+}
+
+function renderList(){
+  const m=$("#main");
+  if(loadErr&&!loaded){m.innerHTML=`<div class="notice warn">${esc(loadErr)}</div>`;return}
+  if(!loaded){m.innerHTML=`<div class="empty"><p class="muted">Chargement des groupes…</p></div>`;return}
+  const mg=myGroup(),ms=mg&&mg.choix!==null?mg.startups[mg.choix]:null;
+  const banner=mg?`<div class="notice ${ms?"picked":""}"><span class="eyebrow">Ton groupe · Groupe ${mg.numero}</span>${ms?
+    `<b style="font-size:18px">Le professeur a choisi : ${esc(ms.nom)}</b><span class="muted">C’est la startup que ton groupe va présenter.</span>`:
+    `<span>Le professeur n’a pas encore choisi votre startup.</span>`}</div>`:"";
+  if(!groups.length){
+    m.innerHTML=`<div class="empty"><h2>Aucun groupe inscrit pour l’instant</h2><p class="muted">Les groupes apparaîtront ici dès leur inscription.</p>${isProf()?"":`<button class="btn primary" id="empty-go">Inscrire mon groupe</button>`}</div>`;
+    const b=$("#empty-go");if(b)b.onclick=()=>openForm();return;
+  }
+  const done=groups.filter(g=>g.choix!==null).length;
+  m.innerHTML=`<div style="display:grid;gap:14px">${banner}
+   <div class="bar"><h2 style="font-size:24px">${groups.length} groupe${groups.length>1?"s":""} inscrit${groups.length>1?"s":""}</h2>
+   <span class="muted">${done} / ${groups.length} choix faits par le prof</span></div>
+   <div class="groups">${groups.map(g=>{
+     const list=g.choix!==null&&g.startups[g.choix]?[g.startups[g.choix]]:g.startups;
+     return `<button class="gcard" data-g="${g.numero}">
+       <div class="gnum"><h2>Groupe ${g.numero}${g.numero===myNum?"<small>le tien</small>":""}</h2>
+       <span class="pill ${g.choix!==null?"done":""}">${g.choix!==null?"Choisi":"En attente"}</span></div>
+       <div class="thumbs ${list.length===1?"one":""}">${list.map(s=>`<div class="thumb">${okImg(s.photo)?`<img src="${s.photo}" alt="">`:initials(s.nom)}</div>`).join("")}</div>
+       <div><b>${list.map(s=>esc(s.nom)).join(" · ")}</b></div>
+       <div class="names">${esc(g.membres.join(", "))}</div>
+     </button>`}).join("")}</div></div>`;
+  m.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{view={name:"group",num:Number(b.dataset.g)};confirmAct=null;showMsg("");render();scrollTo(0,0)});
+}
+
+function renderGroup(num){
+  const m=$("#main"),g=groups.find(x=>x.numero===num);
+  if(!g){m.innerHTML=`<div class="notice">Ce groupe n’existe plus.</div>`;return}
+  const c=g.choix,chosen=c!==null&&g.startups[c];
+  const shown=chosen?[[c,g.startups[c]]]:g.startups.map((s,i)=>[i,s]);
+  m.innerHTML=`<div style="display:grid;gap:24px">
+   <div class="detailhead">
+     <p class="eyebrow">Inscrit le ${new Date(g.creeLe||0).toLocaleDateString("fr-FR",{day:"numeric",month:"long"})} · ${g.membres.length} membres</p>
+     <h2>Groupe ${g.numero}</h2>
+     <div class="members">${g.membres.map((x,i)=>`<span class="chip ${i===0?"lead":""}">${esc(x)}${i===0?" · chef":""}</span>`).join("")}</div>
+     ${chosen?`<p><b>Le professeur a choisi ${esc(chosen.nom)}.</b> ${isProf()?`<button class="linkbtn" id="undo">Annuler ce choix</button>`:""}</p>`:
+       isProf()?`<p class="muted">Choisissez la startup que ce groupe présentera. Les deux autres disparaîtront.</p>`:`<p class="muted">En attente du choix du professeur.</p>`}
+   </div>
+   <div class="startups ${chosen?"solo":""}">${shown.map(([i,s])=>`
+     <article class="scard ${chosen?"chosen":""}">
+       ${chosen?`<div class="stamp">Choisie par<br>le prof</div>`:""}
+       <div class="photo">${okImg(s.photo)?`<img src="${s.photo}" alt="Photo de ${esc(s.nom)}">`:initials(s.nom)}</div>
+       <div class="body">
+         <p class="meta">${esc([s.pays,s.secteur].filter(Boolean).join(" · "))}</p>
+         <h3>${esc(s.nom)}</h3>
+         <p class="desc">${esc(s.description)}</p>
+         ${isProf()&&!chosen?(confirmAct===`pick-${i}`?
+           `<div class="confirm"><span>Garder <b>${esc(s.nom)}</b> ?</span><button class="btn primary small" data-yes="${i}">Oui, celle-ci</button><button class="btn small" data-no>Annuler</button></div>`:
+           `<button class="btn primary" data-pick="${i}">Choisir cette startup</button>`):""}
+       </div>
+     </article>`).join("")}</div>
+   ${role==="admin"?`<div>${confirmAct==="del"?
+     `<div class="confirm"><span>Supprimer le groupe ${g.numero} et ses 3 startups ?</span><button class="btn danger small" id="del-yes">Supprimer</button><button class="btn small" id="del-no">Annuler</button></div>`:
+     `<button class="linkbtn" id="del">Supprimer ce groupe</button>`}</div>`:""}
+  </div>`;
+  m.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>{confirmAct="pick-"+b.dataset.pick;render()});
+  m.querySelectorAll("[data-no]").forEach(b=>b.onclick=()=>{confirmAct=null;render()});
+  m.querySelectorAll("[data-yes]").forEach(b=>b.onclick=()=>doChoose(num,Number(b.dataset.yes),b));
+  const u=$("#undo");if(u)u.onclick=()=>doChoose(num,null,u);
+  const d=$("#del");if(d)d.onclick=()=>{confirmAct="del";render()};
+  const dn=$("#del-no");if(dn)dn.onclick=()=>{confirmAct=null;render()};
+  const dy=$("#del-yes");if(dy)dy.onclick=async()=>{dy.disabled=true;
+    try{await api("deleteGroup",roleCode,num);confirmAct=null;view={name:"list"};showMsg("Groupe supprimé.");await load()}
+    catch(e){showMsg(esc(e.message),"notice err");dy.disabled=false}};
+}
+async function doChoose(num,idx,btn){
+  if(busy)return;busy=true;btn.disabled=true;
+  try{await api("choose",roleCode,num,idx);confirmAct=null;showMsg("");await load()}
+  catch(e){showMsg(esc(e.message),"notice err");render()}
+  busy=false;
+}
+
+/* ---------- pied de page : code prof et code de groupe ---------- */
+function renderFoot(){
+  const f=$("#foot");
+  if(isProf()){f.innerHTML=`<div><button class="linkbtn" id="logout">Quitter le mode ${role==="admin"?"administrateur":"professeur"}</button></div>`;
+    $("#logout").onclick=()=>{role=null;roleCode=null;store.set("codeRole",null);render()};return}
+  if((codeOpen&&$("#pform"))||(editOpen&&$("#eform")))return;
+  let html="";
+  if(!myGroup())html+=editOpen?`<form id="eform" class="notice" style="max-width:460px" novalidate>
+      <label for="ecode">Code de ton groupe</label>
+      <div class="inline"><input type="text" id="ecode" autocomplete="off" maxlength="12" style="text-transform:uppercase"><button class="btn primary small" type="submit">Valider</button><button class="btn small" type="button" id="ecancel">Annuler</button></div>
+      <span class="formerr" id="eerr" role="alert"></span></form>`:
+    `<div>Ton groupe est déjà inscrit ? <button class="linkbtn" id="edit">Le retrouver avec son code</button></div>`;
+  html+=codeOpen?`<form id="pform" class="notice" style="max-width:460px" novalidate>
+      <label for="pcode">Code professeur</label>
+      <div class="inline"><input type="password" id="pcode" autocomplete="off"><button type="button" class="btn small" id="pshow" aria-pressed="false">Afficher</button></div>
+      <span class="formerr" id="perr" role="alert"></span>
+      <div class="inline"><button class="btn primary small" type="submit">Valider</button><button class="btn small" type="button" id="pcancel">Annuler</button></div></form>`:
+    `<div>Vous êtes le professeur ? <button class="linkbtn" id="ask">Entrer le code professeur</button></div>`;
+  f.innerHTML=html;
+  const ed=$("#edit");if(ed)ed.onclick=()=>{editOpen=true;render();$("#ecode").focus()};
+  const ec=$("#ecancel");if(ec)ec.onclick=()=>{editOpen=false;render()};
+  const ef=$("#eform");if(ef)ef.onsubmit=async e=>{e.preventDefault();const err=$("#eerr");err.textContent="";
+    try{const r=await api("groupByCode",$("#ecode").value);myCode=r.code;myNum=r.numero;store.set("codeGroupe",myCode);store.set("numeroGroupe",String(myNum));
+      editOpen=false;showMsg(`Groupe ${myNum} retrouvé. Tu peux le modifier.`);render()}catch(x){err.textContent=x.message}};
+  const ask=$("#ask");if(ask)ask.onclick=()=>{codeOpen=true;render();$("#pcode").focus()};
+  const pc=$("#pcancel");if(pc)pc.onclick=()=>{codeOpen=false;render()};
+  const ps=$("#pshow");if(ps)ps.onclick=()=>{const i=$("#pcode"),show=i.type==="password";i.type=show?"text":"password";ps.textContent=show?"Masquer":"Afficher";ps.setAttribute("aria-pressed",show);i.focus()};
+  const pf=$("#pform");if(pf)pf.onsubmit=async e=>{e.preventDefault();const v=$("#pcode").value,err=$("#perr");err.textContent="";
+    try{const r=await api("checkRole",v);if(!r){err.textContent="Code incorrect.";return}
+      role=r;roleCode=v;store.set("codeRole",v);codeOpen=false;
+      showMsg(r==="admin"?"<b>Mode administrateur activé.</b>":"<b>Accès professeur activé.</b> Ouvrez un groupe pour choisir sa startup.");render()}
+    catch(x){err.textContent=x.message}};
+}
+
+/* ---------- administrateur ---------- */
+function renderAdmin(){
+  const a=$("#admin");
+  if(role!=="admin"){a.hidden=true;return}
+  a.hidden=false;
+  a.innerHTML=`<h3>Espace administrateur</h3>
+   <div class="inline"><button class="btn primary small" id="pdf" ${groups.length?"":"disabled"}>Télécharger le PDF des groupes</button><span class="muted" id="pdfmsg" style="font-size:14px"></span></div>`;
+  $("#pdf").onclick=()=>makePdf($("#pdf"),$("#pdfmsg"));
+}
+
+/* ---------- PDF ---------- */
+function imgSize(u){return new Promise(r=>{const i=new Image();i.onload=()=>r([i.naturalWidth,i.naturalHeight]);i.onerror=()=>r(null);i.src=u})}
+async function buildPdf(list){
+  const doc=new window.jspdf.jsPDF({unit:"mm",format:"a4"}),W=210,M=18,TW=W-2*M;let y=M;
+  const need=h=>{if(y+h>282){doc.addPage();y=M}};
+  const text=(t,size,style="normal",color=[19,33,46],gap=1.5)=>{doc.setFont("helvetica",style);doc.setFontSize(size);doc.setTextColor(...color);
+    const lines=doc.splitTextToSize(String(t),TW);const lh=size*.42;need(lines.length*lh);doc.text(lines,M,y+lh*.8);y+=lines.length*lh+gap};
+  const date=new Date().toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
+  const done=list.filter(g=>g.choix!==null).length;
+  text("Exposés : startups africaines",22,"bold");
+  text(`${list.length} groupes inscrits · ${done} startup${done>1?"s":""} choisie${done>1?"s":""} par le professeur · ${date}`,10,"normal",[91,104,115],6);
+  text("Récapitulatif",14,"bold",[19,33,46],2);
+  doc.setDrawColor(217,223,218);
+  list.forEach(g=>{const c=g.choix;const st=c!==null&&g.startups[c]?g.startups[c].nom:"En attente du choix";
+    need(8);doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(19,33,46);
+    doc.text(`Groupe ${g.numero}`,M,y+4);doc.setFont("helvetica","normal");
+    doc.text(doc.splitTextToSize(`Chef : ${g.membres[0]||"-"}`,70)[0],M+24,y+4);
+    doc.setFont("helvetica",c!==null?"bold":"italic");doc.text(doc.splitTextToSize(st,TW-100)[0],M+100,y+4);
+    y+=7;doc.line(M,y-1,W-M,y-1)});
+  y+=6;
+  for(const g of list){
+    need(40);doc.setDrawColor(14,124,107);doc.setLineWidth(.6);doc.line(M,y,W-M,y);doc.setLineWidth(.2);y+=3;
+    text(`Groupe ${g.numero}`,16,"bold",[14,124,107],1);
+    text(`Chef de groupe : ${g.membres[0]||"-"}`,11,"bold");
+    text(`Membres (${g.membres.length}) : ${g.membres.join(", ")}`,10,"normal",[19,33,46],3);
+    const ch=g.choix!==null?g.startups[g.choix]:null;
+    if(ch){
+      text("Startup retenue par le professeur",10,"bold",[184,50,31],1);
+      let h=0,w=0;
+      if(okImg(ch.photo)){const sz=await imgSize(ch.photo);if(sz){h=Math.min(45*sz[1]/sz[0],50);w=h*sz[0]/sz[1];need(h+2);
+        try{doc.addImage(ch.photo,"JPEG",M,y,w,h)}catch(e){h=0}}}
+      const y0=y,tx=h?M+52:M,tw=h?TW-52:TW;
+      doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(19,33,46);doc.text(doc.splitTextToSize(ch.nom,tw),tx,y+5);
+      doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(91,104,115);
+      doc.text(doc.splitTextToSize([ch.pays,ch.secteur].filter(Boolean).join(" · "),tw),tx,y+10);
+      doc.setFontSize(10);doc.setTextColor(19,33,46);const dl=doc.splitTextToSize(ch.description||"",tw);doc.text(dl,tx,y+16);
+      y=Math.max(y0+h,y+16+dl.length*4.2)+3;
+    }else text("En attente du choix du professeur.",10,"italic",[91,104,115],1);
+    text(`Propositions du groupe : ${g.startups.map(s=>s.nom).join(" · ")}`,9,"normal",[91,104,115],7);
+  }
+  return doc;
+}
+async function makePdf(btn,msg){
+  btn.disabled=true;msg.textContent="Préparation du PDF…";
+  try{
+    if(!window.jspdf)throw new Error("jsPDF");
+    await load();
+    const doc=await buildPdf(groups);
+    doc.save("groupes-exposes-startups.pdf");
+    msg.textContent="PDF téléchargé.";
+  }catch(e){msg.textContent="Le PDF n’a pas pu être créé. Recharge la page et réessaie."}
+  btn.disabled=false;
+}
+
+/* ---------- formulaire ---------- */
+let photos=[null,null,null];
+function openForm(){
+  const g=myGroup();view={name:"form"};showMsg("");
+  photos=g?g.startups.map(s=>okImg(s.photo)?s.photo:null):[null,null,null];
+  const mem=g?g.membres.slice():[];while(mem.length<5)mem.push("");
+  const st=g?g.startups:[{},{},{}];
+  $("#admin").hidden=true;$("#foot").innerHTML="";
+  $("#main").innerHTML=`<form id="f" novalidate>
+   <div><h2 style="font-size:30px">${g?`Modifier le groupe ${g.numero}`:"Inscrire mon groupe"}</h2>
+   <p class="muted">${g?"Tes changements remplacent la version enregistrée.":"Remplis les membres et tes 3 startups, puis enregistre."}${g&&g.choix!==null?" <b>Attention : le prof a déjà fait son choix pour ce groupe.</b>":""}</p></div>
+   <fieldset><legend>Membres (5 à 7)</legend>
+     <div id="mlist" style="display:grid;gap:8px"></div>
+     <div><button type="button" class="btn small" id="addm">Ajouter un membre</button></div>
+   </fieldset>
+   ${[0,1,2].map(i=>`<fieldset><legend>Startup ${i+1}</legend>
+     <label for="s${i}-nom">Nom de la startup<input type="text" id="s${i}-nom" maxlength="60" value="${esc(st[i].nom)}"></label>
+     <div class="row2">
+       <label for="s${i}-pays">Pays<input type="text" id="s${i}-pays" maxlength="40" value="${esc(st[i].pays)}" placeholder="ex. Togo"></label>
+       <label for="s${i}-sect">Secteur<input type="text" id="s${i}-sect" maxlength="50" value="${esc(st[i].secteur)}" placeholder="ex. Fintech"></label>
+     </div>
+     <label for="s${i}-desc">Ce qu’elle fait, en quelques lignes<textarea id="s${i}-desc" maxlength="600">${esc(st[i].description)}</textarea></label>
+     <div class="photoin"><div class="thumb" id="s${i}-prev"></div>
+       <label for="s${i}-photo">Photo de la startup (JPG ou PNG)<input type="file" id="s${i}-photo" accept="image/jpeg,image/png,image/webp"></label></div>
+   </fieldset>`).join("")}
+   <p class="formerr" id="ferr" role="alert"></p>
+   <div class="inline"><button class="btn primary" id="save" type="submit">Enregistrer</button><button class="btn" type="button" id="cancel">Annuler</button></div>
+  </form>`;
+  const ml=$("#mlist");
+  const readM=()=>[...ml.querySelectorAll("input")].map(x=>x.value);
+  const drawM=vals=>{ml.innerHTML=vals.map((v,i)=>`<div class="mrow"><span class="n">${i+1}</span><input type="text" id="m${i}" maxlength="50" value="${esc(v)}" placeholder="${i===0?"Nom du chef de groupe":"Nom et prénom"}" aria-label="Membre ${i+1}">${i>=5?`<button type="button" class="btn small" data-rmm="${i}">Retirer</button>`:""}</div>`).join("");
+    ml.querySelectorAll("[data-rmm]").forEach(b=>b.onclick=()=>{const v=readM();v.splice(+b.dataset.rmm,1);drawM(v)});
+    $("#addm").disabled=vals.length>=7};
+  drawM(mem);
+  $("#addm").onclick=()=>{const v=readM();if(v.length<7){v.push("");drawM(v)}};
+  [0,1,2].forEach(i=>{drawPrev(i);$(`#s${i}-photo`).onchange=e=>loadPhoto(i,e.target.files[0])});
+  $("#cancel").onclick=()=>{view={name:"list"};render()};
+  $("#f").onsubmit=e=>{e.preventDefault();saveGroup(readM())};
+  scrollTo(0,0);render();
+}
+function drawPrev(i){const p=$(`#s${i}-prev`);if(p)p.innerHTML=photos[i]?`<img src="${photos[i]}" alt="">`:"Photo"}
+function compress(img,max,q){const r=Math.min(1,max/Math.max(img.width,img.height));
+  const c=document.createElement("canvas");c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);
+  const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
+  return c.toDataURL("image/jpeg",q)}
+function loadPhoto(i,file){
+  const err=$("#ferr");err.textContent="";if(!file)return;
+  const url=URL.createObjectURL(file),img=new Image();
+  img.onload=()=>{let d=null;for(const [mx,q] of [[520,.75],[440,.7],[360,.65],[300,.6],[240,.55]]){d=compress(img,mx,q);if(d.length<=44000)break}
+    URL.revokeObjectURL(url);
+    if(d.length>44000){err.textContent=`La photo de la startup ${i+1} est trop lourde. Choisis une autre image.`;return}
+    photos[i]=d;drawPrev(i)};
+  img.onerror=()=>{err.textContent=`La photo de la startup ${i+1} n’a pas pu être lue. Utilise une image JPG ou PNG.`;URL.revokeObjectURL(url)};
+  img.src=url;
+}
+async function saveGroup(rawM){
+  const err=$("#ferr");err.textContent="";
+  const membres=rawM.map(s=>s.trim()).filter(Boolean);
+  if(membres.length<5||membres.length>7){err.textContent=`Il faut entre 5 et 7 membres (tu en as ${membres.length}).`;return}
+  const startups=[];
+  for(const i of [0,1,2]){
+    const nom=$(`#s${i}-nom`).value.trim(),description=$(`#s${i}-desc`).value.trim();
+    if(!nom){err.textContent=`Donne un nom à la startup ${i+1}.`;$(`#s${i}-nom`).focus();return}
+    if(!description){err.textContent=`Décris la startup ${i+1} en quelques lignes.`;$(`#s${i}-desc`).focus();return}
+    if(!photos[i]){err.textContent=`Ajoute une photo pour la startup ${i+1}.`;return}
+    startups.push({nom,pays:$(`#s${i}-pays`).value.trim(),secteur:$(`#s${i}-sect`).value.trim(),description,photo:photos[i]});
+  }
+  const b=$("#save");b.disabled=true;b.textContent="Enregistrement…";
+  try{
+    const r=await api("saveGroup",{membres,startups},myGroup()?myCode:null);
+    myCode=r.code;myNum=r.numero;store.set("codeGroupe",myCode);store.set("numeroGroupe",String(myNum));
+    view={name:"group",num:myNum};
+    showMsg(r.nouveau?`<b style="font-size:18px">Groupe enregistré. Vous êtes le groupe ${r.numero}.</b>
+      <span>Garde ce code : il permet de modifier ton groupe depuis un autre téléphone ou ordinateur.</span><span class="codebox">${esc(r.code)}</span>`:`Groupe ${r.numero} mis à jour.`);
+    await load();scrollTo(0,0);
+  }catch(e){err.textContent=e.message;b.disabled=false;b.textContent="Enregistrer"}
+}
+
+$("#go-list").onclick=()=>{view={name:"list"};confirmAct=null;showMsg("");render()};
+$("#go-form").onclick=()=>openForm();
+$("#refresh").onclick=()=>load();
+setInterval(()=>{if(document.visibilityState==="visible"&&view.name!=="form"&&!busy)load()},60000);
+
+(async()=>{
+  render();
+  if(roleCode){try{role=await api("checkRole",roleCode)}catch(e){}if(!role){roleCode=null;store.set("codeRole",null)}}
+  await load();
+})();
+</script>
+</body>
+</html>
