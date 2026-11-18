@@ -130,6 +130,18 @@ h2 em{font-style:normal;color:var(--blue)} .dark h2 em{color:var(--sky)}
 body.mouse #nav{opacity:1}
 #nav button{font:600 15px var(--fb);background:rgba(20,30,60,.85);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px 14px;cursor:pointer}
 #nav span{font:600 15px var(--fb);color:#fff;background:rgba(20,30,60,.85);border-radius:10px;padding:10px 14px}
+/* mode PDF (?print) */
+@page{size:1920px 1080px;margin:0}
+body.print{overflow:visible;background:#fff}
+body.print #vp{position:static;overflow:visible}
+body.print #stage{position:static;transform:none!important;width:1920px;height:auto}
+body.print .slide{position:relative;width:1920px;height:1080px;opacity:1;visibility:visible;transition:none;break-after:page;page-break-after:always}
+body.print .slide .rise{opacity:1;transform:none;animation:none}
+body.print .slide:last-child{break-after:auto;page-break-after:auto}
+body.print #prog,body.print #nav,body.print .hint{display:none}
+body.print [data-status]{display:none}
+body.print .cover h1 span{background:none;color:#fff}
+@media print{*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 /* fenêtre code présentateur */
 #modal{position:fixed;inset:0;background:rgba(3,6,15,.75);display:none;place-items:center;z-index:10}
 #modal.on{display:grid}
@@ -695,10 +707,30 @@ const live={
 };
 
 /* textes affichés hors connexion */
-const OFF={sondage:"Avez-vous déjà payé quelque chose en ligne avec le mobile money ?"};
-slides.forEach(s=>{const q=s.querySelector("[data-q]");if(q&&OFF[s.dataset.live])q.textContent=OFF[s.dataset.live]});
+/* textes affichés hors connexion et dans le PDF (sans les bonnes réponses) */
+const OFF={
+  sondage:["Avez-vous déjà payé quelque chose en ligne avec le mobile money ?",["Oui, souvent","Oui, une ou deux fois","Jamais","C’est quoi le mobile money ?"]],
+  q1:["Dans quel pays FedaPay est-elle née ?",["Togo","Bénin","Sénégal","Nigeria"]],
+  q2:["Dans combien de pays FedaPay est-elle présente ?",["2 pays","5 pays","12 pays","54 pays"]],
+  q3:["Laquelle n’est PAS une valeur officielle de FedaPay ?",["Innovation","Simplicité","Rapidité","Sécurité"]],
+  q4:["Combien de collaborateurs travaillent chez FedaPay ?",["Environ 10","Environ 45","Environ 300","Plus de 1 000"]],
+  q5:["Qu’a obtenu FedaPay en 2026 ?",["Une licence de banque","Une licence BCEAO d’établissement de paiement","Le rachat par Wave","Une cotation en bourse"]]
+};
+slides.forEach(s=>{const o=OFF[s.dataset.live];if(!o)return;
+  s.querySelector("[data-q]").textContent=o[0];
+  const box=s.querySelector("[data-bars]");box.innerHTML="";live.drawBars(s,o[1],[0,0,0,0],null);
+  s.querySelectorAll(".ct").forEach(c=>c.textContent="");
+});
 
-show(cur);
+if(new URLSearchParams(location.search).has("print")){
+  /* mode PDF : toutes les diapos l'une sous l'autre, sans animation ni direct */
+  document.body.classList.add("print");
+  const pod=slides.find(s=>s.dataset.live==="podium");
+  if(pod)pod.querySelector("[data-podium]").innerHTML='<div class="pod"><span class="r">🥇</span><span>Le classement s’affiche en direct pendant l’exposé</span><span></span></div>';
+  slides.forEach(s=>{const t=s.querySelector("[data-timer] span");if(t)t.textContent="20"});
+}else{
+  show(cur);
+}
 </script>
 </body>
 </html>
