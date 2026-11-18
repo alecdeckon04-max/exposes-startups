@@ -16,8 +16,8 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:#03060F;overflow:hidden;font-family:var(--fb);color:var(--ink)}
-#vp{position:fixed;inset:0;display:grid;place-items:center}
-#stage{width:1920px;height:1080px;position:relative;transform-origin:center center;flex:none}
+#vp{position:fixed;inset:0;overflow:hidden}
+#stage{width:1920px;height:1080px;position:absolute;left:50%;top:50%;transform-origin:center center}
 .slide{position:absolute;inset:0;background:var(--paper);overflow:hidden;opacity:0;visibility:hidden;transition:opacity .45s ease,visibility 0s linear .45s}
 .slide.on{opacity:1;visibility:visible;transition:opacity .45s ease}
 .slide.dark{background:radial-gradient(1200px 800px at 85% 10%,#16255C 0%,transparent 60%),var(--night);color:#fff}
@@ -216,7 +216,7 @@ body.mouse #nav{opacity:1}
       <div class="kick rise">01 · Qui est FedaPay ?</div>
       <h2 class="rise" style="--d:1">Une fintech née à <em>Cotonou</em></h2>
       <dl class="facts">
-        <div class="fact rise" style="--d:2"><dt>Pays</dt><dd>Bénin 🇧🇯<small>Siège à Cotonou</small></dd></div>
+        <div class="fact rise" style="--d:2"><dt>Pays</dt><dd>Bénin<small>Siège à Cotonou</small></dd></div>
         <div class="fact rise" style="--d:3"><dt>Création</dt><dd>2018<small>8 ans d'existence</small></dd></div>
         <div class="fact rise" style="--d:4"><dt>Secteur</dt><dd>Fintech<small>Agrégateur de paiement</small></dd></div>
         <div class="fact rise" style="--d:5"><dt>Équipe</dt><dd>45 collaborateurs<small>30 % de femmes</small></dd></div>
@@ -548,7 +548,7 @@ document.querySelectorAll('section[data-live^="q"]').forEach(s=>{
 
 /* mise à l'échelle 1920×1080 */
 const stage=document.getElementById("stage");
-function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`scale(${s})`}
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`translate(-50%,-50%) scale(${s})`}
 addEventListener("resize",fit);fit();
 
 /* navigation */
