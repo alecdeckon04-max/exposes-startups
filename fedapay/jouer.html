@@ -113,7 +113,7 @@ function render(force){
     app.innerHTML=`<div class="center"><div class="big">${good?"🎉":"😅"}</div><h1 class="${good?"ok":"ko"}">${good?"Bonne réponse !":"Raté…"}</h1>
       ${good?"":`<p>La bonne réponse était : <b style="color:#fff">${esc(st.choix[st.bonne])}</b></p>`}
       <p class="small" id="sc">Calcul de ton score…</p></div>`;
-    api("liveMyScore",pid).then(s=>{const e=document.getElementById("sc");if(e)e.textContent=`Ton score : ${s.points} pts`+(s.rang?` · ${s.rang}ᵉ sur ${s.joueurs}`:"")}).catch(()=>{});
+    api("liveMyScore",pid).then(s=>{const e=document.getElementById("sc");if(e)e.textContent=`Ton score : ${s.points} pts`+(s.rang?` · ${s.rang===1?"1ᵉʳ":s.rang+"ᵉ"} sur ${s.joueurs}`:"")}).catch(()=>{});
     return;
   }
   app.innerHTML=`<div class="center"><div class="big">👀</div><h1>Regarde l'écran</h1><p>${st.type==="sondage"?"Le sondage est terminé.":"La question est fermée."}</p></div>`;
@@ -141,7 +141,7 @@ async function send(i,btn){
 async function podium(){
   app.innerHTML=`<div class="center"><div class="big">🏆</div><h1>Fin du quiz !</h1><p id="sc">Calcul de ton score…</p></div>`;
   try{const s=await api("liveMyScore",pid);const e=document.getElementById("sc");
-    if(e)e.innerHTML=s.rang?`<span class="pts">${s.points} pts</span><br>Tu es <b style="color:#fff">${s.rang}ᵉ sur ${s.joueurs}</b> · ${s.bonnes} bonne${s.bonnes>1?"s":""} réponse${s.bonnes>1?"s":""}`:"Tu n'as pas participé au quiz cette fois."}catch(e){}
+    if(e)e.innerHTML=s.rang?`<span class="pts">${s.points} pts</span><br>Tu es <b style="color:#fff">${s.rang===1?"1ᵉʳ":s.rang+"ᵉ"} sur ${s.joueurs}</b> · ${s.bonnes} bonne${s.bonnes>1?"s":""} réponse${s.bonnes>1?"s":""}`:"Tu n'as pas participé au quiz cette fois."}catch(e){}
 }
 
 async function loop(){
