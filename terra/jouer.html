@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0E0F0C">
+<title>Quiz Terra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--night:#0E0F0C;--card:rgba(255,255,255,.07);--line:rgba(255,255,255,.14);--txt:#fff;--mute:#9AA7CF;--sky:#FFA866;--blue:#E0661C;
+  --a0:#E8443A;--a1:#1A5CFF;--a2:#E39A0C;--a3:#14995A;--fd:"Bricolage Grotesque",system-ui,sans-serif;--fb:"Instrument Sans",system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%}
+body{background:radial-gradient(600px 400px at 90% 0%,#3A2A12 0%,transparent 70%),var(--night);color:var(--txt);font-family:var(--fb);
+  padding:max(18px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom));min-height:100dvh;display:flex;flex-direction:column}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}
+.brand{font:800 20px var(--fd)} .brand span{color:var(--sky)}
+.me{font:600 14px var(--fb);color:var(--mute);text-align:right}
+.me b{color:#fff}
+main{flex:1;display:flex;flex-direction:column}
+.center{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;gap:14px}
+h1{font:800 32px/1.12 var(--fd);letter-spacing:-.01em}
+h2{font:800 25px/1.18 var(--fd)}
+p{font-size:17px;line-height:1.5;color:#C9D3F0}
+.kick{font:700 13px var(--fb);letter-spacing:.14em;text-transform:uppercase;color:var(--sky)}
+input{width:100%;font:600 20px var(--fb);padding:16px 18px;border-radius:16px;border:2px solid var(--line);background:rgba(255,255,255,.06);color:#fff;outline:none}
+input:focus{border-color:var(--sky)}
+.btn{width:100%;font:700 19px var(--fb);padding:17px;border-radius:16px;border:0;background:var(--blue);color:#fff;cursor:pointer}
+.btn:disabled{opacity:.5}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;flex:1;max-height:520px}
+.ans{border:0;border-radius:20px;color:#fff;font:700 18px/1.25 var(--fb);padding:16px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:120px;cursor:pointer;transition:transform .1s,opacity .2s}
+.ans:active{transform:scale(.97)}
+.ans svg{width:34px;height:34px}
+.ans.dim{opacity:.3}
+.ans.pick{outline:4px solid #fff;outline-offset:-4px}
+.timer{font:800 22px var(--fd);color:var(--sky)}
+.big{font-size:72px;line-height:1}
+.pts{font:800 44px var(--fd)}
+.ok{color:#3DDC84} .ko{color:#FF7A70}
+.small{font-size:14px;color:var(--mute)}
+.net{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;background:#3A1A1A;color:#FFB4AE;font:600 13px var(--fb);padding:8px 14px;border-radius:999px;display:none}
+.net.on{display:block}
+.link{background:none;border:0;color:var(--mute);font:600 14px var(--fb);text-decoration:underline;cursor:pointer;margin-top:8px}
+.spin{width:44px;height:44px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--sky);margin:0 auto;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header><div class="brand">Quiz <span>Terra</span></div><div class="me" id="me"></div></header>
+<main id="app"><div class="center"><div class="spin"></div></div></main>
+<div class="net" id="net">Connexion perdue… on réessaie</div>
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbwSIa-_mLELSUvxs5vB3OhSn4vG94Ryurz9kxgw0kS8etmE5I9tUHukR0nkW-TLkeDD/exec";
+const COLORS=["var(--a0)","var(--a1)","var(--a2)","var(--a3)"];
+const SHAPES=['<svg viewBox="0 0 40 40"><path d="M20 4L37 34H3z" fill="#fff"/></svg>','<svg viewBox="0 0 40 40"><path d="M20 3L37 20 20 37 3 20z" fill="#fff"/></svg>','<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#fff"/></svg>','<svg viewBox="0 0 40 40"><rect x="5" y="5" width="30" height="30" rx="3" fill="#fff"/></svg>'];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const mem={};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return mem[k]??null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){mem[k]=v}}};
+async function api(fn,...args){
+  const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({fn,args}),credentials:"omit",redirect:"follow"});
+  const j=await r.json();if(!j.ok)throw Object.assign(new Error(j.error||"Erreur"),{server:true});return j.data;
+}
+let pid=store.get("quizJoueur");
+if(!pid){pid=Math.random().toString(36).slice(2,10)+Date.now().toString(36);store.set("quizJoueur",pid)}
+let pseudo=store.get("quizPseudo")||"";
+const app=document.getElementById("app"),net=document.getElementById("net");
+let st=null,lastKey="",ends=0,tick=null;
+const answered=k=>{const v=store.get("rep:"+k);return v==null||v===""?null:+v};
+const keyOf=()=>[st.session,st.etape,st.ouvert,st.revele,answered(st.session+":"+st.etape)].join("|"); // k = session:etape → index choisi
+function meLine(){document.getElementById("me").innerHTML=pseudo?`Joueur : <b>${esc(pseudo)}</b>`:""}
+
+function askName(){
+  lastKey="nom";
+  app.innerHTML=`<div class="center"><div class="kick">Bienvenue</div><h1>Ton prénom pour le quiz</h1>
+    <p>Il s'affichera sur le podium à l'écran.</p>
+    <form id="f" style="display:grid;gap:12px;margin-top:10px"><input id="n" maxlength="20" autocomplete="given-name" placeholder="Ex. : Ama" value="${esc(pseudo)}"><button class="btn">C'est parti</button></form></div>`;
+  const n=app.querySelector("#n");n.focus();
+  app.querySelector("#f").onsubmit=e=>{e.preventDefault();const v=n.value.trim();if(!v){n.focus();return}
+    pseudo=v.slice(0,20);store.set("quizPseudo",pseudo);meLine();lastKey="";render(true)};
+}
+
+function render(force){
+  if(!pseudo){ if(lastKey!=="nom")askName(); return }
+  if(!st)return;
+  const key=keyOf();
+  if(key===lastKey&&!force)return; lastKey=key;
+  clearInterval(tick);
+  const k=st.session+":"+st.etape, mine=answered(k);
+  if(st.etape==="attente"||!st.type&&st.etape!=="podium"){
+    app.innerHTML=`<div class="center"><div class="big">👀</div><h1>Regarde l'écran</h1><p>Le prochain sondage ou la prochaine question va bientôt s'afficher ici.</p>${pseudo?`<button class="link" id="chg">Changer de prénom</button>`:""}</div>`;
+    const c=app.querySelector("#chg");if(c)c.onclick=askName;return;
+  }
+  if(st.etape==="podium"){podium();return}
+  const head=st.type==="quiz"?`<div style="display:flex;justify-content:space-between;align-items:center"><div class="kick">Question ${st.numero} / 5</div><div class="timer" id="t"></div></div>`:`<div class="kick">Sondage</div>`;
+  if(st.ouvert&&mine==null){
+    app.innerHTML=`${head}<h2 style="margin-top:10px">${esc(st.question)}</h2>
+      <div class="grid">${st.choix.map((c,i)=>`<button class="ans" data-i="${i}" style="background:${COLORS[i]}">${SHAPES[i]}<span>${esc(c)}</span></button>`).join("")}</div>`;
+    app.querySelectorAll(".ans").forEach(b=>b.onclick=()=>send(+b.dataset.i,b));
+    if(st.type==="quiz")countdown();
+    return;
+  }
+  if(st.ouvert&&mine!=null){
+    app.innerHTML=`<div class="center"><div class="big">${st.type==="quiz"?"⏳":"✅"}</div><h1>${st.type==="quiz"?"Réponse envoyée !":"Merci pour ton vote !"}</h1>
+      <p>Tu as choisi : <b style="color:#fff">${esc(st.choix[mine])}</b></p><p class="small">${st.type==="quiz"?"Attends la révélation à l'écran…":"Regarde les résultats à l'écran."}</p></div>`;
+    return;
+  }
+  // question fermée
+  if(st.type==="quiz"&&st.revele){
+    if(mine==null){app.innerHTML=`<div class="center"><div class="big">⌛</div><h1>Temps écoulé</h1><p>La bonne réponse était : <b style="color:#fff">${esc(st.choix[st.bonne])}</b></p></div>`;return}
+    const good=+mine===st.bonne;
+    app.innerHTML=`<div class="center"><div class="big">${good?"🎉":"😅"}</div><h1 class="${good?"ok":"ko"}">${good?"Bonne réponse !":"Raté…"}</h1>
+      ${good?"":`<p>La bonne réponse était : <b style="color:#fff">${esc(st.choix[st.bonne])}</b></p>`}
+      <p class="small" id="sc">Calcul de ton score…</p></div>`;
+    api("liveMyScore",pid).then(s=>{const e=document.getElementById("sc");if(e)e.textContent=`Ton score : ${s.points} pts`+(s.rang?` · ${s.rang===1?"1ᵉʳ":s.rang+"ᵉ"} sur ${s.joueurs}`:"")}).catch(()=>{});
+    return;
+  }
+  app.innerHTML=`<div class="center"><div class="big">👀</div><h1>Regarde l'écran</h1><p>${st.type==="sondage"?"Le sondage est terminé.":"La question est fermée."}</p></div>`;
+}
+
+function countdown(){
+  ends=Date.now()+(st.reste??20000);
+  const t=document.getElementById("t");
+  const f=()=>{const s=Math.max(0,Math.ceil((ends-Date.now())/1000));if(t)t.textContent=s+" s";};
+  f();tick=setInterval(f,250);
+}
+
+async function send(i,btn){
+  const k=st.session+":"+st.etape;
+  app.querySelectorAll(".ans").forEach(b=>{b.disabled=true;b.classList.toggle("pick",b===btn);b.classList.toggle("dim",b!==btn)});
+  try{
+    await api("liveAnswer",pid,pseudo||"Anonyme",st.etape,i);
+    store.set("rep:"+k,String(i));render(true);
+  }catch(e){
+    if(e.server){app.innerHTML=`<div class="center"><div class="big">⌛</div><h1>${esc(e.message)}</h1></div>`;lastKey=keyOf()}
+    else{app.querySelectorAll(".ans").forEach(b=>{b.disabled=false;b.classList.remove("pick","dim")});net.classList.add("on")}
+  }
+}
+
+async function podium(){
+  app.innerHTML=`<div class="center"><div class="big">🏆</div><h1>Fin du quiz !</h1><p id="sc">Calcul de ton score…</p></div>`;
+  try{const s=await api("liveMyScore",pid);const e=document.getElementById("sc");
+    if(e)e.innerHTML=s.rang?`<span class="pts">${s.points} pts</span><br>Tu es <b style="color:#fff">${s.rang===1?"1ᵉʳ":s.rang+"ᵉ"} sur ${s.joueurs}</b> · ${s.bonnes} bonne${s.bonnes>1?"s":""} réponse${s.bonnes>1?"s":""}`:"Tu n'as pas participé au quiz cette fois."}catch(e){}
+}
+
+async function loop(){
+  try{const s=await api("liveState");net.classList.remove("on");
+    if(st&&st.session!==s.session)lastKey=""; st=s;render(false)}
+  catch(e){net.classList.add("on")}
+  setTimeout(loop,st&&st.ouvert?1500:2500);
+}
+meLine();
+if(!pseudo)askName();
+loop();
+</script>
+</body>
+</html>
