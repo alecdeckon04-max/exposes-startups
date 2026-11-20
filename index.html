@@ -292,8 +292,14 @@ function renderAdmin(){
   if(role!=="admin"){a.hidden=true;return}
   a.hidden=false;
   a.innerHTML=`<h3>Espace administrateur</h3>
-   <div class="inline"><button class="btn primary small" id="pdf" ${groups.length?"":"disabled"}>Télécharger le PDF des groupes</button><span class="muted" id="pdfmsg" style="font-size:14px"></span></div>`;
-  $("#pdf").onclick=()=>makePdf($("#pdf"),$("#pdfmsg"));
+   <div class="inline"><button class="btn primary small" id="pdf" ${groups.length?"":"disabled"}>Préparer le PDF des groupes</button><span class="muted" id="pdfmsg" style="font-size:14px"></span></div>
+   <div class="inline" id="pdfout" hidden style="margin-top:10px">
+     <button class="btn primary small" id="pdfshare" hidden>Partager (WhatsApp…)</button>
+     <button class="btn small" id="pdfdl">Télécharger</button>
+     <a class="btn small" id="pdfopen" target="_blank" rel="noopener">Ouvrir le PDF</a>
+   </div>`;
+  $("#pdf").onclick=()=>makePdf();
+  wirePdf();
 }
 
 /* ---------- PDF ---------- */
@@ -338,16 +344,42 @@ async function buildPdf(list){
   }
   return doc;
 }
-async function makePdf(btn,msg){
-  btn.disabled=true;msg.textContent="Préparation du PDF…";
+function loadJsPdf(){
+  if(window.jspdf)return Promise.resolve();
+  return new Promise((res,rej)=>{const s=document.createElement("script");
+    s.src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js";s.onload=()=>window.jspdf?res():rej(new Error("jsPDF"));s.onerror=()=>rej(new Error("jsPDF"));document.head.appendChild(s)})}
+/* Le PDF est d'abord préparé, puis l'utilisateur choisit Partager / Télécharger / Ouvrir :
+   le partage (WhatsApp) exige un nouveau clic, et certains navigateurs bloquent les téléchargements automatiques.
+   L'état est gardé à part, car l'espace admin est redessiné à chaque actualisation de la liste. */
+let pdfReady=null,pdfMsg="",pdfBusy=false;
+function setPdfMsg(t){pdfMsg=t;const m=$("#pdfmsg");if(m)m.textContent=t}
+function wirePdf(){
+  const out=$("#pdfout");if(!out)return;
+  const b=$("#pdf");if(b)b.disabled=pdfBusy||!groups.length;
+  setPdfMsg(pdfMsg);
+  if(!pdfReady){out.hidden=true;return}
+  const {url,file,name,canShare}=pdfReady;
+  $("#pdfshare").hidden=!canShare;
+  $("#pdfshare").onclick=async()=>{try{await navigator.share({files:[file],title:"Groupes – exposés startups"});setPdfMsg("PDF partagé.")}catch(e){if(e&&e.name!=="AbortError")setPdfMsg("Le partage a échoué : utilise « Télécharger ».")}};
+  $("#pdfdl").onclick=()=>{try{const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setPdfMsg("Téléchargement lancé : regarde dans tes téléchargements.")}catch(e){window.open(url,"_blank")}};
+  $("#pdfopen").href=url;
+  out.hidden=false;
+}
+async function makePdf(){
+  if(pdfBusy)return;pdfBusy=true;setPdfMsg("Préparation du PDF…");wirePdf();
   try{
-    if(!window.jspdf)throw new Error("jsPDF");
+    await loadJsPdf();
     await load();
     const doc=await buildPdf(groups);
-    doc.save("groupes-exposes-startups.pdf");
-    msg.textContent="PDF téléchargé.";
-  }catch(e){msg.textContent="Le PDF n’a pas pu être créé. Recharge la page et réessaie."}
-  btn.disabled=false;
+    const name=`groupes-exposes-startups-${new Date().toISOString().slice(0,10)}.pdf`;
+    const blob=doc.output("blob");
+    let file=null;try{file=new File([blob],name,{type:"application/pdf"})}catch(_){}
+    let canShare=false;try{canShare=!!(file&&navigator.canShare&&navigator.share&&navigator.canShare({files:[file]}))}catch(_){}
+    if(pdfReady)URL.revokeObjectURL(pdfReady.url);
+    pdfReady={url:URL.createObjectURL(blob),file,name,canShare};
+    pdfMsg=canShare?"PDF prêt : partage-le directement sur WhatsApp, ou télécharge-le.":"PDF prêt : télécharge-le ou ouvre-le.";
+  }catch(e){pdfMsg="Le PDF n’a pas pu être créé. Vérifie ta connexion, recharge la page et réessaie."}
+  pdfBusy=false;wirePdf();
 }
 
 /* ---------- formulaire ---------- */
