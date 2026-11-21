@@ -158,11 +158,27 @@ let codeOpen=false,editOpen=false;
 const isProf=()=>role==="prof"||role==="admin";
 const myGroup=()=>myNum?groups.find(g=>g.numero===myNum):null;
 
-async function load(){
-  try{groups=await api("listGroups");loaded=true;loadErr=null;
-    if(myNum&&!myGroup()&&loaded){myNum=null;myCode=null;store.set("codeGroupe",null);store.set("numeroGroupe",null)}}
-  catch(e){loadErr=e.message}
-  render();
+/* Chargement économe : on demande d'abord la « version » des données (quelques octets) ;
+   la liste complète (photos comprises, ~1 Mo) n'est retéléchargée que si quelque chose a changé.
+   La dernière liste est gardée sur l'appareil pour un affichage immédiat, même avec une connexion lente. */
+let dataVer=null,loading=null;
+try{const c=JSON.parse(localStorage.getItem("cacheGroupes")||"null");if(c&&Array.isArray(c.groups)){groups=c.groups;dataVer=c.ver;loaded=true}}catch(_){}
+function load(force){
+  if(loading)return loading;
+  loading=(async()=>{
+    try{
+      let fresh=true;
+      if(!force&&loaded&&dataVer!=null){try{fresh=(await api("dataVersion"))!==dataVer}catch(_){fresh=true}}
+      if(fresh){
+        const r=await api("listGroupsV");groups=r.groups;dataVer=r.ver;
+        try{localStorage.setItem("cacheGroupes",JSON.stringify({ver:r.ver,groups:r.groups}))}catch(_){try{localStorage.removeItem("cacheGroupes")}catch(__){}}
+      }
+      loaded=true;loadErr=null;
+      if(myNum&&!myGroup()){myNum=null;myCode=null;store.set("codeGroupe",null);store.set("numeroGroupe",null)}
+      render();
+    }catch(e){loadErr=e.message;if(!loaded)render();else showMsg(esc(e.message)+" (la liste affichée peut être ancienne)","notice warn")}
+  })().finally(()=>{loading=null});
+  return loading;
 }
 function showMsg(html,cls="notice"){$("#msg").innerHTML=html?`<div class="${cls}">${html}</div>`:""}
 
@@ -491,7 +507,7 @@ async function saveGroup(rawM){
 
 $("#go-list").onclick=()=>{view={name:"list"};confirmAct=null;showMsg("");render()};
 $("#go-form").onclick=()=>openForm();
-$("#refresh").onclick=()=>load();
+$("#refresh").onclick=()=>{showMsg("");load(true)};
 setInterval(()=>{if(document.visibilityState==="visible"&&view.name!=="form"&&!busy)load()},60000);
 
 (async()=>{
